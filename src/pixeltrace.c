@@ -1,3 +1,8 @@
+/**
+ * pixeltrace.c - activated like 'autotrace' in fontforge to trace BDF
+ * fonts into exact pixel TTF fonts.
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
