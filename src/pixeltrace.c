@@ -4,15 +4,15 @@
 
 #include "pixeltrace.h"
 #include "endian.h"
-#pragma pack(1)
 
-char bmp_header[54];
+/* quick and dirty packed structure lol */
 char color_data[4];
-
 unsigned char* red   = (unsigned char*)(color_data + 0);
 unsigned char* green = (unsigned char*)(color_data + 1);
 unsigned char* blue  = (unsigned char*)(color_data + 2);
 
+/* quick and dirty packed structure lol */
+char bmp_header[54];
 uint32_t* bmp_bytes            = (uint32_t*)(bmp_header + 2);
 uint32_t* bmp_reserved         = (uint32_t*)(bmp_header + 6);
 uint32_t* bmp_data_offset      = (uint32_t*)(bmp_header + 10);
@@ -38,7 +38,6 @@ int pixel_trace(char* filename) {
      }
      size_t bytes = fread(bmp_header, 1, 54, fh);
      ofs += bytes;
-     fprintf(stderr, "read %d bytes\n", (int)bytes);
      if (bytes < 54) {
           fprintf(stderr, "%s too small\n", filename);
           fclose(fh);
@@ -80,12 +79,9 @@ int pixel_trace(char* filename) {
                return 0;
           }
           brightnesses[i] = (0.2126 * *red + 0.7152 * *green + 0.0722 * *blue) / 255.0;
-          fprintf(stderr, "%f\n", brightnesses[i]);
      }
      int black_color = brightnesses[0] < brightnesses[1] ? 0 : 1;
      int white_color = brightnesses[0] < brightnesses[1] ? 1 : 0;
-     fprintf(stderr, "black color = %d\n", black_color);
-     fprintf(stderr, "white color = %d\n", white_color);
 
      if (0 != fseek(fh, *bmp_data_offset, SEEK_SET)) {
           perror(filename);
@@ -93,7 +89,6 @@ int pixel_trace(char* filename) {
           return 0;
      }
 
-     int fread_bits_per_row  = ((*bmp_width + 31) / 32) * 32;
      int fread_bytes_per_row = ((*bmp_width + 31) / 32) * 4;
      unsigned char* pixel_data = malloc(fread_bytes_per_row);
 
@@ -106,9 +101,7 @@ int pixel_trace(char* filename) {
      printf("%%%%EndComments\n");
      printf("%%%%Page: 1 1\n");
      for (int y = 0; y < *bmp_height; y += 1) {
-          fprintf(stderr, "row %d\n", y);
           bytes = fread(pixel_data, 1, fread_bytes_per_row, fh);
-          fprintf(stderr, "read %d bytes\n", (int)bytes);
           if (bytes < fread_bytes_per_row) {
                fprintf(stderr, "%s too small\n", filename);
                free(pixel_data);
@@ -124,13 +117,9 @@ int pixel_trace(char* filename) {
           int y2 = y + 1;
           int x1 = 0;
           int x2 = 0;
-          for (int i = 0; i < fread_bytes_per_row; i += 1) {
-               fprintf(stderr, "%02x", pixel_data[i]);
-          }
-          fprintf(stderr, "\n");
           while (x1 < *bmp_width) {
-               /* skip zero bits */
                while (x1 < *bmp_width) {
+                    /* skip the '0' bits */
                     int bit = 1 & (pixel_data[x1 / 8] >> (7 - x1 % 8));
                     if (bit == 0) {
                          break;
@@ -142,6 +131,7 @@ int pixel_trace(char* filename) {
                }
                x2 = x1;
                while (x2 < *bmp_width) {
+                    /* count the '1' bits */
                     int bit = 1 & (pixel_data[x2 / 8] >> (7 - x2 % 8));
                     if (bit == 1) {
                          break;
