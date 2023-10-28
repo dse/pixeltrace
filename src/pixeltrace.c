@@ -132,31 +132,28 @@ int pixel_trace(char* filename) {
                /* skip zero bits */
                while (x1 < *bmp_width) {
                     int bit = 1 & (pixel_data[x1 / 8] >> (7 - x1 % 8));
-                    fputc(bit ? '*' : ' ', stderr);
                     if (bit == 0) {
                          break;
                     }
                     x1 += 1;
                }
-               fprintf(stderr, "x1 = %d\n", x1);
                if (x1 >= *bmp_width) {
                     break;
                }
                x2 = x1;
                while (x2 < *bmp_width) {
                     int bit = 1 & (pixel_data[x2 / 8] >> (7 - x2 % 8));
-                    fputc(bit ? '*' : ' ', stderr);
                     if (bit == 1) {
                          break;
                     }
                     x2 += 1;
                }
-               fputc('\n', stderr);
-               printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto closepath  0 setlinewidth  fill\n",
+               printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
                       x1, y1, x1, y2, x2, y2, x2, y1);
                x1 = x2;
           }
      }
+     printf("%%%%EOF\n");
      fclose(fh);
      return 1;
 }
