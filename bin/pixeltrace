@@ -4,6 +4,7 @@ use strict;
 use Getopt::Long;
 use POSIX qw(ceil);
 use List::Util qw(max min);
+use Data::Dumper qw(Dumper);
 
 our $output_format;
 our $input_format;
@@ -12,8 +13,12 @@ Getopt::Long::Configure('gnu_getopt');
 Getopt::Long::GetOptions('output-format=s' => \$output_format,
                          'input-format=s' => \$input_format);
 
-our $bmp_data = get_bmp_data(shift(@ARGV));
+my $filename = shift(@ARGV);
+our $bmp_data = get_bmp_data($filename);
 my $parsed = parse_bmp_data($bmp_data);
+if (!defined $parsed) {
+    exit(0);
+}
 my $width = $parsed->{width};
 my $height = $parsed->{height};
 my $eps = generate_eps($parsed);
@@ -21,7 +26,12 @@ print($eps);
 
 sub generate_eps {
     my $data = shift;
-    my ($width, $height, $bits) = @$data{qw(width height bits)};
+    my $width  = defined $data ? $data->{width} : undef;
+    my $height  = defined $data ? $data->{height} : undef;
+    my $bits  = defined $data ? $data->{bits} : undef;
+    $width //= 0;
+    $height //= 0;
+    $bits //= 0;
     my $eps = <<"END";
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: pixeltrace
@@ -32,6 +42,9 @@ sub generate_eps {
 %%EndComments
 %%Page: 1 1
 END
+    if (!$width || !$height || !$bits) {
+        return $eps;
+    }
     for (my $y = 0; $y < scalar @$bits; $y += 1) {
         my $line = $bits->[$y];
         my $y1 = $height - $y;
@@ -39,10 +52,10 @@ END
         my $x1 = 0;
         while (length $line) {
             $line =~ s{^0+}{};
-            my $white = length($&);
+            my $white = length($& // '');
             $x1 += $white;
             $line =~ s{^1+}{};
-            my $dark = length($&);
+            my $dark = length($& // '');
             my $x2 = $x1 + $dark;
             $eps .= sprintf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto closepath  0 setlinewidth  fill\n",
                             $x1, $y1, $x1, $y2, $x2, $y2, $x2, $y1);
@@ -60,6 +73,9 @@ sub parse_bmp_data {
         $important_colors, $data) = unpack('A2VVVVVVvvVVVVVVA*', $bmp_data);
     my $num_colors = 2 ** $bpp;
     $bmp_data = $data;
+    if (!defined $bmp_data) {
+        return;
+    }
     $ofs += 54;
     die("invalid signature in BMP data") if ($signature ne 'BM');
     die("autotrace expects 1 plane") if ($planes != 1);
@@ -75,6 +91,9 @@ sub parse_bmp_data {
         for (my $i = 0; $i < $num_colors; $i += 1) {
             my ($red, $green, $blue, undef, $data) = unpack('CCCCA*', $bmp_data);
             $bmp_data = $data;
+            if (!defined $bmp_data) {
+                return;
+            }
             $ofs += 4;
             push(@colors, [$red, $green, $blue]);
             my $bright = 0.2126 * $red + 0.7152 * $green + 0.0722 * $blue;
@@ -87,6 +106,9 @@ sub parse_bmp_data {
         if ($bytes > 0) {
             $interstitial_data = substr($bmp_data, 0, $bytes);
             $bmp_data = substr($bmp_data, $bytes);
+            if (!defined $bmp_data) {
+                return;
+            }
         }
     }
     my $bits = unpack('B*', $bmp_data);
@@ -117,7 +139,8 @@ sub get_bmp_data {
     open($fh, '<', $filename) || die("$filename: $!");
     binmode($fh) or die("$filename: $!");
     local $/ = undef;
-    return <$fh>;
+    my $data = <$fh>;
+    return $data;
 }
 
 sub bit_inverse {
