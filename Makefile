@@ -3,9 +3,9 @@ OBJS := objs/main.o objs/pixeltrace.o objs/endian.o
 HDRS := src/main.h src/pixeltrace.h src/endian.h
 .SUFFIXES: .c .o
 
-default: FORCE bin/pixeltrace2
+default: FORCE bin/pixeltrace
 
-bin/pixeltrace2: $(OBJS) Makefile
+bin/pixeltrace: $(OBJS) Makefile
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(CFLAGS)
 
 objs/%.o: src/%.c $(HDRS) Makefile
