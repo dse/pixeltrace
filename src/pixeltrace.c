@@ -34,19 +34,26 @@ uint32_t* bmp_colors_used      = (uint32_t*)(bmp_header + 46);
 uint32_t* bmp_important_colors = (uint32_t*)(bmp_header + 50);
 
 int pixel_trace(char* filename) {
+     int pixel_trace_success = 0;
      int ofs = 0;
-     FILE* fh;
+     FILE* fh = NULL;
+     unsigned char* pixel_data = NULL;
+     size_t bytes;
+     double brightnesses[2];
+     int black_color;
+     int white_color;
+     int fread_bytes_per_row;
+
      fh = fopen(filename, "rb");
      if (fh == NULL) {
           perror(filename);
-          return 0;
+          goto done;
      }
-     size_t bytes = fread(bmp_header, 1, 54, fh);
+     bytes = fread(bmp_header, 1, 54, fh);
      ofs += bytes;
      if (bytes < 54) {
           fprintf(stderr, "%s too small\n", filename);
-          fclose(fh);
-          return 0;
+          goto done;
      }
      *bmp_bytes             = le32toh(*bmp_bytes);
      *bmp_reserved          = le32toh(*bmp_reserved);
@@ -65,37 +72,36 @@ int pixel_trace(char* filename) {
 
      if (bmp_header[0] != 'B' || bmp_header[1] != 'M') {
           fprintf(stderr, "%s: invalid signature\n", filename);
-          fclose(fh);
-          return 0;
+          goto done;
      }
      if (*bmp_bpp != 1) {
           fprintf(stderr, "%s: %d bpp not supported\n", filename, *bmp_bpp);
-          fclose(fh);
-          return 0;
+          goto done;
      }
 
-     double brightnesses[2];
      for (int i = 0; i < 2; i += 1) {
           bytes = fread(color_data, 1, 4, fh);
           ofs += bytes;
           if (bytes < 4) {
                fprintf(stderr, "%s too small\n", filename);
-               fclose(fh);
-               return 0;
+               goto done;
           }
           brightnesses[i] = (0.2126 * *red + 0.7152 * *green + 0.0722 * *blue) / 255.0;
      }
-     int black_color = brightnesses[0] < brightnesses[1] ? 0 : 1;
-     int white_color = brightnesses[0] < brightnesses[1] ? 1 : 0;
+     black_color = brightnesses[0] < brightnesses[1] ? 0 : 1;
+     white_color = brightnesses[0] < brightnesses[1] ? 1 : 0;
 
      if (0 != fseek(fh, *bmp_data_offset, SEEK_SET)) {
           perror(filename);
-          fclose(fh);
-          return 0;
+          goto done;
      }
 
-     int fread_bytes_per_row = ((*bmp_width + 31) / 32) * 4;
-     unsigned char* pixel_data = malloc(fread_bytes_per_row);
+     fread_bytes_per_row = ((*bmp_width + 31) / 32) * 4;
+     pixel_data = malloc(fread_bytes_per_row);
+     if (NULL == pixelData) {
+          perror("malloc");
+          goto done;
+     }
 
      printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
      printf("%%%%Creator: pixeltrace\n");
@@ -109,9 +115,7 @@ int pixel_trace(char* filename) {
           bytes = fread(pixel_data, 1, fread_bytes_per_row, fh);
           if (bytes < fread_bytes_per_row) {
                fprintf(stderr, "%s too small\n", filename);
-               free(pixel_data);
-               fclose(fh);
-               return 0;
+               goto done;
           }
           if (black_color == 1) {
                for (int i = 0; i < fread_bytes_per_row; i += 1) {
@@ -149,6 +153,15 @@ int pixel_trace(char* filename) {
           }
      }
      printf("%%%%EOF\n");
-     fclose(fh);
-     return 1;
+     pixel_trace_success = 1;
+done:
+     if (fh != NULL) {
+          fclose(fh);
+          fh = NULL;
+     }
+     if (pixel_data != NULL) {
+          free(pixel_data);
+          pixel_data = NULL;
+     }
+     return pixel_trace_success;
 }
