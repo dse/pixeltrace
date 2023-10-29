@@ -210,8 +210,7 @@ int pixel_trace(char* filename) {
                     printf("%lf %lf lineto\n", dx1, dy2);
                     printf("%lf %lf lineto\n", dx2, dy2);
                     printf("%lf %lf lineto\n", dx2, dy1);
-                    printf("0 setlinewidth 0 setgray closepath\n");
-                    printf("fill\n");
+                    draw_path_done();
                }
           } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
                for (x1 = 0; x1 < *bmp_width; x1 += 1) {
@@ -223,8 +222,7 @@ int pixel_trace(char* filename) {
                     double cx = (x1 + x2) * 0.5;
                     double cy = (y1 + y2) * 0.5;
                     printf("%lf %lf %lf 0 360 arc\n", cx, cy, pixel_radius * 0.5);
-                    printf("0 setlinewidth 0 setgray closepath\n");
-                    printf("fill\n");
+                    draw_path_done();
                }
           } else {              /* PIXEL_TYPE_PLAIN or _SCANLINE */
                while (x1 < *bmp_width) {
@@ -254,15 +252,13 @@ int pixel_trace(char* filename) {
                          printf("%d %lf lineto\n", x1, dy2);
                          printf("%d %lf lineto\n", x2, dy2);
                          printf("%d %d lineto\n", x2, y1);
-                         printf("0 setlinewidth 0 setgray closepath\n");
-                         printf("fill\n");
+                         draw_path_done();
                     } else {
                          printf("%d %d moveto\n", x1, y1);
                          printf("%d %d lineto\n", x1, y2);
                          printf("%d %d lineto\n", x2, y2);
                          printf("%d %d lineto\n", x2, y1);
-                         printf("0 setlinewidth 0 setgray closepath\n");
-                         printf("fill\n");
+                         draw_path_done();
                     }
                     x1 = x2;
                }
@@ -280,4 +276,9 @@ done:
           pixel_data = NULL;
      }
      return pixel_trace_success;
+}
+
+void draw_path_done() {
+     printf("0 setlinewidth 0 setgray closepath\n");
+     printf("fill\n");
 }

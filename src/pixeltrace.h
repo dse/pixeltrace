@@ -11,4 +11,6 @@ enum {
 
 int pixel_trace(char* filename);
 
+void draw_path_done();
+
 #endif
