@@ -44,7 +44,7 @@ int pixel_trace(char* filename) {
      int black_color;
      int white_color;
      int fread_bytes_per_row;
-     int pixel_type = PIXEL_TYPE_RECTANGLE; /* or _SCANLINE or _ELLIPSE */
+     int pixel_type = PIXEL_TYPE_NONE; /* or _PLAIN or _RECTANGLE or _SCANLINE or _ELLIPSE */
      char* getenv_val;
      char* val = NULL;
      double pixel_height = NAN;
@@ -119,6 +119,14 @@ int pixel_trace(char* filename) {
           }
      }
 
+     if (pixel_type == PIXEL_TYPE_NONE) {
+          if (!isnan(pixel_height)) {
+               pixel_type = PIXEL_TYPE_SCANLINE;
+          } else {
+               pixel_type = PIXEL_TYPE_PLAIN;
+          }
+     }
+
      printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
      printf("%%%%Creator: pixeltrace\n");
      printf("%%%%LanguageLevel: 2\n");
@@ -163,7 +171,7 @@ int pixel_trace(char* filename) {
                     }
                     x2 += 1;
                }
-               if (!isnan(pixel_height)) {
+               if (pixel_type == PIXEL_TYPE_SCANLINE) {
                     double dy2 = y1 + (y2 - y1) * pixel_height;
                     printf("%d %d moveto %d %lf lineto %d %lf lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
                            x1, y1, x1, dy2, x2, dy2, x2, y1);
