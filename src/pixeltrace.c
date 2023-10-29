@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "pixeltrace.h"
 #include "endian.h"
@@ -43,6 +44,10 @@ int pixel_trace(char* filename) {
      int black_color;
      int white_color;
      int fread_bytes_per_row;
+     int pixel_type = PIXEL_TYPE_SQUARE; /* or _SCANLINE or _CIRCLE */
+     char* getenv_val;
+     char* val = NULL;
+     double pixel_height = NAN;
 
      fh = fopen(filename, "rb");
      if (fh == NULL) {
@@ -97,10 +102,21 @@ int pixel_trace(char* filename) {
      }
 
      fread_bytes_per_row = ((*bmp_width + 31) / 32) * 4;
-     pixel_data = malloc(fread_bytes_per_row);
-     if (NULL == pixelData) {
+     if (NULL == (pixel_data = malloc(fread_bytes_per_row))) {
           perror("malloc");
           goto done;
+     }
+
+     if (NULL != (getenv_val = getenv("PIXELTRACE_HEIGHT"))) {
+          if (sscanf(getenv_val, "%lf", &pixel_height) < 1) {
+               fprintf(stderr, "invalid pixel height value: %s\n", getenv_val);
+               goto done;
+          }
+          if (pixel_height < 0) {
+               pixel_height = 0;
+          } else if (pixel_height > 1) {
+               pixel_height = 1;
+          }
      }
 
      printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
@@ -147,8 +163,14 @@ int pixel_trace(char* filename) {
                     }
                     x2 += 1;
                }
-               printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
-                      x1, y1, x1, y2, x2, y2, x2, y1);
+               if (!isnan(pixel_height)) {
+                    double dy2 = y1 + (y2 - y1) * pixel_height;
+                    printf("%d %d moveto %d %lf lineto %d %lf lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
+                           x1, y1, x1, dy2, x2, dy2, x2, y1);
+               } else {
+                    printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
+                           x1, y1, x1, y2, x2, y2, x2, y1);
+               }
                x1 = x2;
           }
      }
