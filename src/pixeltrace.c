@@ -179,7 +179,7 @@ int pixel_trace(char* filename) {
      printf("%%%%HiResBoundingBox: 0 0 %d.000000 %d.000000\n", *bmp_width, *bmp_height);
      printf("%%%%Pages: 1\n");
      printf("%%%%EndComments\n");
-     printf("%%%%Page: 1 1\n");
+     printf("%%%%Page: 1 1\n\n");
      for (int y = 0; y < *bmp_height; y += 1) {
           bytes = fread(pixel_data, 1, fread_bytes_per_row, fh);
           if (bytes < fread_bytes_per_row) {
@@ -280,7 +280,7 @@ done:
 
 void draw_path_done() {
      printf("0 setlinewidth 0 setgray closepath\n");
-     printf("fill\n");
+     printf("fill\n\n");
 }
 void draw_lineto(double x, double y) {
      printf("%lg %lg lineto\n", x, y);
