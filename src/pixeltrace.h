@@ -14,5 +14,6 @@ int pixel_trace(char* filename);
 void draw_path_done();
 void draw_lineto(double, double);
 void draw_moveto(double, double);
+void draw_arc(double, double, double);
 
 #endif

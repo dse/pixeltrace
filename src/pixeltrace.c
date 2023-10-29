@@ -221,7 +221,7 @@ int pixel_trace(char* filename) {
                     x2 = x1 + 1;
                     double cx = (x1 + x2) * 0.5;
                     double cy = (y1 + y2) * 0.5;
-                    printf("%lg %lg %lg 0 360 arc\n", cx, cy, pixel_radius * 0.5);
+                    draw_arc(cx, cy, pixel_radius * 0.5);
                     draw_path_done();
                }
           } else {              /* PIXEL_TYPE_PLAIN or _SCANLINE */
@@ -287,4 +287,7 @@ void draw_lineto(double x, double y) {
 }
 void draw_moveto(double x, double y) {
      printf("%lg %lg moveto\n", x, y);
+}
+void draw_arc(double cx, double cy, double radius) {
+     printf("%lg %lg %lg 0 360 arc\n", cx, cy, radius);
 }
