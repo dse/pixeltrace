@@ -1,6 +1,6 @@
-SRCS := src/main.c src/pixeltrace.c src/endian.c
-OBJS := objs/main.o objs/pixeltrace.o objs/endian.o
-HDRS := src/main.h src/pixeltrace.h src/endian.h
+SRCS := src/main.c src/pixeltrace.c src/endian.c src/pixeltrace2.c
+OBJS := objs/main.o objs/pixeltrace.o objs/endian.o objs/pixeltrace2.o
+HDRS := src/main.h src/pixeltrace.h src/endian.h src/pixeltrace2.h
 .SUFFIXES: .c .o
 
 default: FORCE bin/pixeltrace
