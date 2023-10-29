@@ -206,10 +206,10 @@ int pixel_trace(char* filename) {
                     double dx2 = (x1 + x2) * 0.5 + 0.5 * pixel_width;
                     double dy1 = (y1 + y2) * 0.5 - 0.5 * pixel_height;
                     double dy2 = (y1 + y2) * 0.5 + 0.5 * pixel_height;
-                    printf("%lg %lg moveto\n", dx1, dy1);
-                    printf("%lg %lg lineto\n", dx1, dy2);
-                    printf("%lg %lg lineto\n", dx2, dy2);
-                    printf("%lg %lg lineto\n", dx2, dy1);
+                    draw_moveto(dx1, dy1);
+                    draw_lineto(dx1, dy2);
+                    draw_lineto(dx2, dy2);
+                    draw_lineto(dx2, dy1);
                     draw_path_done();
                }
           } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
@@ -248,16 +248,16 @@ int pixel_trace(char* filename) {
                     }
                     if (pixel_type == PIXEL_TYPE_SCANLINE) {
                          double dy2 = y1 + (y2 - y1) * pixel_height;
-                         printf("%d %d moveto\n", x1, y1);
-                         printf("%d %lg lineto\n", x1, dy2);
-                         printf("%d %lg lineto\n", x2, dy2);
-                         printf("%d %d lineto\n", x2, y1);
+                         draw_moveto((double)x1, (double)y1);
+                         draw_lineto((double)x1, dy2);
+                         draw_lineto((double)x2, dy2);
+                         draw_lineto((double)x2, (double)y1);
                          draw_path_done();
                     } else {
-                         printf("%d %d moveto\n", x1, y1);
-                         printf("%d %d lineto\n", x1, y2);
-                         printf("%d %d lineto\n", x2, y2);
-                         printf("%d %d lineto\n", x2, y1);
+                         draw_moveto((double)x1, (double)y1);
+                         draw_lineto((double)x1, (double)y2);
+                         draw_lineto((double)x2, (double)y2);
+                         draw_lineto((double)x2, (double)y1);
                          draw_path_done();
                     }
                     x1 = x2;
@@ -281,4 +281,10 @@ done:
 void draw_path_done() {
      printf("0 setlinewidth 0 setgray closepath\n");
      printf("fill\n");
+}
+void draw_lineto(double x, double y) {
+     printf("%lg %lg lineto\n", x, y);
+}
+void draw_moveto(double x, double y) {
+     printf("%lg %lg moveto\n", x, y);
 }
