@@ -21,6 +21,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) Makefile
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 test: FORCE $(TARGET)
+	convert test/testing.png -monochrome -depth 1 -type Bilevel -compress None test/testing.bmp
 	pixeltrace test/testing.bmp > test/testing.eps
 	PIXELTRACE_TYPE=scanline  PIXELTRACE_HEIGHT=0.5                       pixeltrace test/testing.bmp > test/testing.2.eps
 	PIXELTRACE_TYPE=rectangle PIXELTRACE_HEIGHT=0.5 PIXELTRACE_WIDTH=0.75 pixeltrace test/testing.bmp > test/testing.3.eps
