@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "pixeltrace.h"
 #include "endian.h"
@@ -48,6 +49,8 @@ int pixel_trace(char* filename) {
      char* getenv_val;
      char* val = NULL;
      double pixel_height = NAN;
+     double pixel_width = NAN;
+     double pixel_radius = NAN;
 
      fh = fopen(filename, "rb");
      if (fh == NULL) {
@@ -118,12 +121,54 @@ int pixel_trace(char* filename) {
                pixel_height = 1;
           }
      }
-
-     if (pixel_type == PIXEL_TYPE_NONE) {
-          if (!isnan(pixel_height)) {
+     if (NULL != (getenv_val = getenv("PIXELTRACE_WIDTH"))) {
+          if (sscanf(getenv_val, "%lf", &pixel_width) < 1) {
+               fprintf(stderr, "invalid pixel width value: %s\n", getenv_val);
+               goto done;
+          }
+          if (pixel_width < 0) {
+               pixel_width = 0;
+          } else if (pixel_width > 1) {
+               pixel_width = 1;
+          }
+     }
+     if (NULL != (getenv_val = getenv("PIXELTRACE_TYPE"))) {
+          if (NULL != strstr(getenv_val, "scan")) {
                pixel_type = PIXEL_TYPE_SCANLINE;
-          } else {
+          } else if (NULL != strstr(getenv_val, "rect")) {
+               pixel_type = PIXEL_TYPE_RECTANGLE;
+          } else if (NULL != strstr(getenv_val, "circ")) {
+               pixel_type = PIXEL_TYPE_CIRCLE;
+          } else if (NULL != strstr(getenv_val, "plain")) {
                pixel_type = PIXEL_TYPE_PLAIN;
+          } else {
+               fprintf(stderr, "invalid pixel type: %s\n", getenv_val);
+               goto done;
+          }
+     }
+
+     if (pixel_type == PIXEL_TYPE_NONE) { /* not selected */
+          if (isnan(pixel_height) || pixel_height >= 1.0) {
+               pixel_type = PIXEL_TYPE_PLAIN;
+          } else {
+               if (isnan(pixel_width) || pixel_width >= 1.0) {
+                    pixel_type = PIXEL_TYPE_SCANLINE;
+               } else {
+                    pixel_type = PIXEL_TYPE_RECTANGLE;
+               }
+          }
+     } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
+          if (!isnan(pixel_radius)) {
+               /* do nothing */
+          } else if (isnan(pixel_width) && isnan(pixel_height)) {
+               pixel_radius = 1;
+          } else if (isnan(pixel_height)) {
+               pixel_radius = pixel_width;
+          } else if (isnan(pixel_width)) {
+               pixel_radius = pixel_height;
+          } else {
+               /* "average" the pixel height and width, multiplicatively */
+               pixel_radius = sqrt(pixel_width * pixel_height);
           }
      }
 
@@ -150,36 +195,64 @@ int pixel_trace(char* filename) {
           int y2 = y + 1;
           int x1 = 0;
           int x2 = 0;
-          while (x1 < *bmp_width) {
-               while (x1 < *bmp_width) {
-                    /* skip the '0' bits */
+          if (pixel_type == PIXEL_TYPE_RECTANGLE) {
+               for (x1 = 0; x1 < *bmp_width; x1 += 1) {
                     int bit = 1 & (pixel_data[x1 / 8] >> (7 - x1 % 8));
-                    if (bit == 0) {
+                    if (bit == 1) { /* light pixel */
+                         continue;
+                    }
+                    x2 = x1 + 1;
+                    double dx1 = (x1 + x2) * 0.5 - 0.5 * pixel_width;
+                    double dx2 = (x1 + x2) * 0.5 + 0.5 * pixel_width;
+                    double dy1 = (y1 + y2) * 0.5 - 0.5 * pixel_height;
+                    double dy2 = (y1 + y2) * 0.5 + 0.5 * pixel_height;
+                    printf("%lf %lf moveto %lf %lf lineto %lf %lf lineto %lf %lf lineto 0 setlinewidth 0 setgray closepath fill\n",
+                           dx1, dy1, dx1, dy2, dx2, dy2, dx2, dy1);
+               }
+          } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
+               for (x1 = 0; x1 < *bmp_width; x1 += 1) {
+                    int bit = 1 & (pixel_data[x1 / 8] >> (7 - x1 % 8));
+                    if (bit == 1) { /* light pixel */
+                         continue;
+                    }
+                    x2 = x1 + 1;
+                    double cx = (x1 + x2) * 0.5;
+                    double cy = (y1 + y2) * 0.5;
+                    printf("%lf %lf %lf 0 360 arc 0 setlinewidth 0 setgray closepath fill\n",
+                           cx, cy, pixel_radius * 0.5);
+               }
+          } else {
+               while (x1 < *bmp_width) {
+                    while (x1 < *bmp_width) {
+                         /* skip the '0' bits */
+                         int bit = 1 & (pixel_data[x1 / 8] >> (7 - x1 % 8));
+                         if (bit == 0) { /* dark pixel */
+                              break;
+                         }
+                         x1 += 1;
+                    }
+                    if (x1 >= *bmp_width) {
                          break;
                     }
-                    x1 += 1;
-               }
-               if (x1 >= *bmp_width) {
-                    break;
-               }
-               x2 = x1;
-               while (x2 < *bmp_width) {
-                    /* count the '1' bits */
-                    int bit = 1 & (pixel_data[x2 / 8] >> (7 - x2 % 8));
-                    if (bit == 1) {
-                         break;
+                    x2 = x1;
+                    while (x2 < *bmp_width) {
+                         /* count the '1' bits */
+                         int bit = 1 & (pixel_data[x2 / 8] >> (7 - x2 % 8));
+                         if (bit == 1) { /* light pixel */
+                              break;
+                         }
+                         x2 += 1;
                     }
-                    x2 += 1;
+                    if (pixel_type == PIXEL_TYPE_SCANLINE) {
+                         double dy2 = y1 + (y2 - y1) * pixel_height;
+                         printf("%d %d moveto %d %lf lineto %d %lf lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
+                                x1, y1, x1, dy2, x2, dy2, x2, y1);
+                    } else {
+                         printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
+                                x1, y1, x1, y2, x2, y2, x2, y1);
+                    }
+                    x1 = x2;
                }
-               if (pixel_type == PIXEL_TYPE_SCANLINE) {
-                    double dy2 = y1 + (y2 - y1) * pixel_height;
-                    printf("%d %d moveto %d %lf lineto %d %lf lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
-                           x1, y1, x1, dy2, x2, dy2, x2, y1);
-               } else {
-                    printf("%d %d moveto %d %d lineto %d %d lineto %d %d lineto 0 setlinewidth 0 setgray closepath fill\n",
-                           x1, y1, x1, y2, x2, y2, x2, y1);
-               }
-               x1 = x2;
           }
      }
      printf("%%%%EOF\n");
