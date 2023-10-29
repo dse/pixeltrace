@@ -206,11 +206,11 @@ int pixel_trace(char* filename) {
                     double dx2 = (x1 + x2) * 0.5 + 0.5 * pixel_width;
                     double dy1 = (y1 + y2) * 0.5 - 0.5 * pixel_height;
                     double dy2 = (y1 + y2) * 0.5 + 0.5 * pixel_height;
-                    printf("%lf %lf moveto ", dx1, dy1);
-                    printf("%lf %lf lineto ", dx1, dy2);
-                    printf("%lf %lf lineto ", dx2, dy2);
-                    printf("%lf %lf lineto ", dx2, dy1);
-                    printf("0 setlinewidth 0 setgray closepath ");
+                    printf("%lf %lf moveto\n", dx1, dy1);
+                    printf("%lf %lf lineto\n", dx1, dy2);
+                    printf("%lf %lf lineto\n", dx2, dy2);
+                    printf("%lf %lf lineto\n", dx2, dy1);
+                    printf("0 setlinewidth 0 setgray closepath\n");
                     printf("fill\n");
                }
           } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
@@ -222,8 +222,8 @@ int pixel_trace(char* filename) {
                     x2 = x1 + 1;
                     double cx = (x1 + x2) * 0.5;
                     double cy = (y1 + y2) * 0.5;
-                    printf("%lf %lf %lf 0 360 arc ", cx, cy, pixel_radius * 0.5);
-                    printf("0 setlinewidth 0 setgray closepath ");
+                    printf("%lf %lf %lf 0 360 arc\n", cx, cy, pixel_radius * 0.5);
+                    printf("0 setlinewidth 0 setgray closepath\n");
                     printf("fill\n");
                }
           } else {              /* PIXEL_TYPE_PLAIN or _SCANLINE */
@@ -250,18 +250,18 @@ int pixel_trace(char* filename) {
                     }
                     if (pixel_type == PIXEL_TYPE_SCANLINE) {
                          double dy2 = y1 + (y2 - y1) * pixel_height;
-                         printf("%d %d moveto ", x1, y1);
-                         printf("%d %lf lineto ", x1, dy2);
-                         printf("%d %lf lineto ", x2, dy2);
-                         printf("%d %d lineto ", x2, y1);
-                         printf("0 setlinewidth 0 setgray closepath ");
+                         printf("%d %d moveto\n", x1, y1);
+                         printf("%d %lf lineto\n", x1, dy2);
+                         printf("%d %lf lineto\n", x2, dy2);
+                         printf("%d %d lineto\n", x2, y1);
+                         printf("0 setlinewidth 0 setgray closepath\n");
                          printf("fill\n");
                     } else {
-                         printf("%d %d moveto ", x1, y1);
-                         printf("%d %d lineto ", x1, y2);
-                         printf("%d %d lineto ", x2, y2);
-                         printf("%d %d lineto ", x2, y1);
-                         printf("0 setlinewidth 0 setgray closepath ");
+                         printf("%d %d moveto\n", x1, y1);
+                         printf("%d %d lineto\n", x1, y2);
+                         printf("%d %d lineto\n", x2, y2);
+                         printf("%d %d lineto\n", x2, y1);
+                         printf("0 setlinewidth 0 setgray closepath\n");
                          printf("fill\n");
                     }
                     x1 = x2;
