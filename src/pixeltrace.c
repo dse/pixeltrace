@@ -221,7 +221,7 @@ int pixel_trace(char* filename) {
                     printf("%lf %lf %lf 0 360 arc 0 setlinewidth 0 setgray closepath fill\n",
                            cx, cy, pixel_radius * 0.5);
                }
-          } else {
+          } else {              /* PIXEL_TYPE_PLAIN or _SCANLINE */
                while (x1 < *bmp_width) {
                     while (x1 < *bmp_width) {
                          /* skip the '0' bits */
