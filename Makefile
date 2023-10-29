@@ -7,6 +7,7 @@ OBJS := $(patsubst src/%.c,objs/%.o,$(SRCS))
 default: FORCE bin/pixeltrace
 
 bin/pixeltrace: $(OBJS) Makefile
+	mkdir -p bin
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(CFLAGS)
 
 objs/%.o: src/%.c $(HDRS) Makefile
