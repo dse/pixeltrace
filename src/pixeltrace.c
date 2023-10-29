@@ -44,7 +44,7 @@ int pixel_trace(char* filename) {
      int black_color;
      int white_color;
      int fread_bytes_per_row;
-     int pixel_type = PIXEL_TYPE_SQUARE; /* or _SCANLINE or _CIRCLE */
+     int pixel_type = PIXEL_TYPE_RECTANGLE; /* or _SCANLINE or _ELLIPSE */
      char* getenv_val;
      char* val = NULL;
      double pixel_height = NAN;
