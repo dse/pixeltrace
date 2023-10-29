@@ -6,10 +6,9 @@ struct pixel_trace {
      int height;
      int** pixels;
      int*** look_dirns;
-     int (*draw_moveto)(int, int);
-     int (*draw_lineto)(int, int);
-     int (*draw_closepath)();
-     int (*draw_fill)();
+     void (*draw_moveto)(double, double);
+     void (*draw_lineto)(double, double);
+     void (*draw_path_done)();
 };
 
 enum { EAST, WEST, NORTH, SOUTH };

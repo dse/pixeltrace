@@ -45,7 +45,7 @@ void pixel_trace_2(struct pixel_trace pt) {
                if (get_pixel(pt, x, y) != 1) {
                     continue;
                }
-               (pt.draw_moveto)(x, y);
+               (pt.draw_moveto)((double)x, (double)y);
                x_orig = x;
                y_orig = y;
                dirn = EAST;
@@ -60,7 +60,7 @@ void pixel_trace_2(struct pixel_trace pt) {
                               goto done;
                          }
                     }
-                    (pt.draw_lineto)(x, y);
+                    (pt.draw_lineto)((double)x, (double)y);
                     if ((dirn == EAST && x == pt.width) || (dirn == WEST && x == 0) ||
                         (dirn == SOUTH && y == pt.height) || (dirn == NORTH && y == 0)) {
                          dirn = right[dirn];
@@ -77,8 +77,7 @@ void pixel_trace_2(struct pixel_trace pt) {
 }
 
 void pixel_trace_2_fill(struct pixel_trace pt) {
-     (pt.draw_closepath)();
-     (pt.draw_fill)();
+     (pt.draw_path_done)();
      /* mark any other pixels inside the contour as done */
      for (int x1 = 0; x1 < pt.width; x1 += 1) {
           for (int y1 = 0; y1 < pt.height; y1 += 1) {
