@@ -111,7 +111,7 @@ int pixel_trace(char* filename) {
      }
 
      if (NULL != (getenv_val = getenv("PIXELTRACE_HEIGHT"))) {
-          if (sscanf(getenv_val, "%lf", &pixel_height) < 1) {
+          if (sscanf(getenv_val, "%lg", &pixel_height) < 1) {
                fprintf(stderr, "invalid pixel height value: %s\n", getenv_val);
                goto done;
           }
@@ -122,7 +122,7 @@ int pixel_trace(char* filename) {
           }
      }
      if (NULL != (getenv_val = getenv("PIXELTRACE_WIDTH"))) {
-          if (sscanf(getenv_val, "%lf", &pixel_width) < 1) {
+          if (sscanf(getenv_val, "%lg", &pixel_width) < 1) {
                fprintf(stderr, "invalid pixel width value: %s\n", getenv_val);
                goto done;
           }
@@ -206,10 +206,10 @@ int pixel_trace(char* filename) {
                     double dx2 = (x1 + x2) * 0.5 + 0.5 * pixel_width;
                     double dy1 = (y1 + y2) * 0.5 - 0.5 * pixel_height;
                     double dy2 = (y1 + y2) * 0.5 + 0.5 * pixel_height;
-                    printf("%lf %lf moveto\n", dx1, dy1);
-                    printf("%lf %lf lineto\n", dx1, dy2);
-                    printf("%lf %lf lineto\n", dx2, dy2);
-                    printf("%lf %lf lineto\n", dx2, dy1);
+                    printf("%lg %lg moveto\n", dx1, dy1);
+                    printf("%lg %lg lineto\n", dx1, dy2);
+                    printf("%lg %lg lineto\n", dx2, dy2);
+                    printf("%lg %lg lineto\n", dx2, dy1);
                     draw_path_done();
                }
           } else if (pixel_type == PIXEL_TYPE_CIRCLE) {
@@ -221,7 +221,7 @@ int pixel_trace(char* filename) {
                     x2 = x1 + 1;
                     double cx = (x1 + x2) * 0.5;
                     double cy = (y1 + y2) * 0.5;
-                    printf("%lf %lf %lf 0 360 arc\n", cx, cy, pixel_radius * 0.5);
+                    printf("%lg %lg %lg 0 360 arc\n", cx, cy, pixel_radius * 0.5);
                     draw_path_done();
                }
           } else {              /* PIXEL_TYPE_PLAIN or _SCANLINE */
@@ -249,8 +249,8 @@ int pixel_trace(char* filename) {
                     if (pixel_type == PIXEL_TYPE_SCANLINE) {
                          double dy2 = y1 + (y2 - y1) * pixel_height;
                          printf("%d %d moveto\n", x1, y1);
-                         printf("%d %lf lineto\n", x1, dy2);
-                         printf("%d %lf lineto\n", x2, dy2);
+                         printf("%d %lg lineto\n", x1, dy2);
+                         printf("%d %lg lineto\n", x2, dy2);
                          printf("%d %d lineto\n", x2, y1);
                          draw_path_done();
                     } else {
