@@ -12,4 +12,8 @@ objs/%.o: src/%.c $(HDRS) Makefile
 	mkdir -p objs
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
+test: FORCE bin/pixeltrace
+	pixeltrace testing.bmp > testing.eps
+	PIXELTRACE_TYPE=scanline PIXELTRACE_HEIGHT=0.5 pixeltrace testing.bmp > testing.2.eps
+
 .PHONY: FORCE
