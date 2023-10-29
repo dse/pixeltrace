@@ -1,20 +1,24 @@
-SRCS := src/main.c src/pixeltrace.c src/endian.c src/pixeltrace2.c
-HDRS := $(patsubst src/%.c,src/%.h,$(SRCS))
-OBJS := $(patsubst src/%.c,objs/%.o,$(SRCS))
+BINDIR := bin
+SRCDIR := src
+OBJDIR := objs
+
+SRCS := $(SRCDIR)/main.c $(SRCDIR)/pixeltrace.c $(SRCDIR)/endian.c $(SRCDIR)/pixeltrace2.c
+HDRS := $(patsubst $(SRCDIR)/%.c,$(SRCDIR)/%.h,$(SRCS))
+OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 .SUFFIXES: .c .o
 
-default: FORCE bin/pixeltrace
+default: FORCE $(BINDIR)/pixeltrace
 
-bin/pixeltrace: $(OBJS) Makefile
+$(BINDIR)/pixeltrace: $(OBJS) Makefile
 	mkdir -p bin
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(CFLAGS)
 
-objs/%.o: src/%.c $(HDRS) Makefile
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(HDRS) Makefile
 	mkdir -p objs
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-test: FORCE bin/pixeltrace
+test: FORCE $(BINDIR)/pixeltrace
 	pixeltrace testing.bmp > testing.eps
 	PIXELTRACE_TYPE=scanline  PIXELTRACE_HEIGHT=0.5                       pixeltrace testing.bmp > testing.2.eps
 	PIXELTRACE_TYPE=rectangle PIXELTRACE_HEIGHT=0.5 PIXELTRACE_WIDTH=0.75 pixeltrace testing.bmp > testing.3.eps
