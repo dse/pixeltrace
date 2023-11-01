@@ -1,6 +1,10 @@
 /**
  * pixeltrace.c - activated like 'autotrace' in fontforge to trace BDF
  * fonts into exact pixel TTF fonts.
+ *
+ * Receives a 1-bit-per-pixel BMP file.
+ *
+ * Outputs EPS.
  */
 
 #include <stdint.h>
@@ -51,6 +55,7 @@ int pixel_trace(char* filename) {
      double pixel_height = NAN;
      double pixel_width = NAN;
      double pixel_radius = NAN;
+     double aspect = 1.0;
 
      fh = fopen(filename, "rb");
      if (fh == NULL) {
@@ -110,6 +115,18 @@ int pixel_trace(char* filename) {
           goto done;
      }
 
+     /* for non-square aspect ratios */
+     if (NULL != (getenv_val = getenv("PIXELTRACE_ASPECT"))) {
+          if (sscanf(getenv_val, "%lg", &aspect) < 1) {
+               fprintf(stderr, "invalid aspect ratio value: %s\n", getenv_val);
+               goto done;
+          }
+          if (aspect <= 0) {
+               aspect = 1;
+          }
+     }
+
+     /* rectangular pixels */
      if (NULL != (getenv_val = getenv("PIXELTRACE_HEIGHT"))) {
           if (sscanf(getenv_val, "%lg", &pixel_height) < 1) {
                fprintf(stderr, "invalid pixel height value: %s\n", getenv_val);
@@ -132,6 +149,8 @@ int pixel_trace(char* filename) {
                pixel_width = 1;
           }
      }
+
+     /* scanlines, rectangle, circle, plain */
      if (NULL != (getenv_val = getenv("PIXELTRACE_TYPE"))) {
           if (NULL != strstr(getenv_val, "scan")) {
                pixel_type = PIXEL_TYPE_SCANLINE;
@@ -172,11 +191,14 @@ int pixel_trace(char* filename) {
           }
      }
 
+     double bbx_width = aspect * *bmp_width;
+     double bbx_height = 1.0 * *bmp_height;
+
      printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
      printf("%%%%Creator: pixeltrace\n");
      printf("%%%%LanguageLevel: 2\n");
-     printf("%%%%BoundingBox: 0 0 %d %d\n", *bmp_width, *bmp_height);
-     printf("%%%%HiResBoundingBox: 0 0 %d.000000 %d.000000\n", *bmp_width, *bmp_height);
+     printf("%%%%BoundingBox: 0 0 %g %g\n", bbx_width, bbx_height);
+     printf("%%%%HiResBoundingBox: 0 0 %.6f %.6f\n", bbx_width, bbx_height);
      printf("%%%%Pages: 1\n");
      printf("%%%%EndComments\n");
      printf("%%%%Page: 1 1\n\n");
@@ -202,8 +224,8 @@ int pixel_trace(char* filename) {
                          continue;
                     }
                     x2 = x1 + 1;
-                    double dx1 = (x1 + x2) * 0.5 - 0.5 * pixel_width;
-                    double dx2 = (x1 + x2) * 0.5 + 0.5 * pixel_width;
+                    double dx1 = aspect * ((x1 + x2) * 0.5 - 0.5 * pixel_width);
+                    double dx2 = aspect * ((x1 + x2) * 0.5 + 0.5 * pixel_width);
                     double dy1 = (y1 + y2) * 0.5 - 0.5 * pixel_height;
                     double dy2 = (y1 + y2) * 0.5 + 0.5 * pixel_height;
                     draw_moveto(dx1, dy1);
@@ -219,7 +241,7 @@ int pixel_trace(char* filename) {
                          continue;
                     }
                     x2 = x1 + 1;
-                    double cx = (x1 + x2) * 0.5;
+                    double cx = aspect * ((x1 + x2) * 0.5);
                     double cy = (y1 + y2) * 0.5;
                     draw_arc(cx, cy, pixel_radius * 0.5);
                     draw_path_done();
@@ -248,16 +270,16 @@ int pixel_trace(char* filename) {
                     }
                     if (pixel_type == PIXEL_TYPE_SCANLINE) {
                          double dy2 = y1 + (y2 - y1) * pixel_height;
-                         draw_moveto((double)x1, (double)y1);
-                         draw_lineto((double)x1, dy2);
-                         draw_lineto((double)x2, dy2);
-                         draw_lineto((double)x2, (double)y1);
+                         draw_moveto(aspect * (double)x1, (double)y1);
+                         draw_lineto(aspect * (double)x1, dy2);
+                         draw_lineto(aspect * (double)x2, dy2);
+                         draw_lineto(aspect * (double)x2, (double)y1);
                          draw_path_done();
                     } else {
-                         draw_moveto((double)x1, (double)y1);
-                         draw_lineto((double)x1, (double)y2);
-                         draw_lineto((double)x2, (double)y2);
-                         draw_lineto((double)x2, (double)y1);
+                         draw_moveto(aspect * (double)x1, (double)y1);
+                         draw_lineto(aspect * (double)x1, (double)y2);
+                         draw_lineto(aspect * (double)x2, (double)y2);
+                         draw_lineto(aspect * (double)x2, (double)y1);
                          draw_path_done();
                     }
                     x1 = x2;
