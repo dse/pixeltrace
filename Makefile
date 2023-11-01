@@ -4,7 +4,7 @@ OBJDIR := objs
 
 TARGET = $(BINDIR)/pixeltrace
 
-SRCS := $(SRCDIR)/main.c $(SRCDIR)/pixeltrace.c $(SRCDIR)/endian.c $(SRCDIR)/pixeltrace2.c
+SRCS := $(SRCDIR)/main.c $(SRCDIR)/pixeltrace.c $(SRCDIR)/endian.c
 HDRS := $(patsubst $(SRCDIR)/%.c,$(SRCDIR)/%.h,$(SRCS))
 OBJS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
