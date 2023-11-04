@@ -29,12 +29,10 @@ int main(int argc, char** argv) {
           case 'o':
                if (output_format) free(output_format);
                output_format = strdup(optarg);
-               fprintf(stderr, "output-format specified: %s\n", output_format);
                break;
           case 'i':
                if (input_format) free(input_format);
                input_format = strdup(optarg);
-               fprintf(stderr, "input-format specified: %s\n", input_format);
                break;
           case '?':
                break;
