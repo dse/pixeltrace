@@ -116,7 +116,7 @@ int pixel_trace(char* filename) {
      }
 
      /* for non-square aspect ratios */
-     if (NULL != (getenv_val = getenv("PIXELTRACE_ASPECT"))) {
+     if (NULL != (getenv_val = getenv("PIXELTRACE_ASPECT")) && *getenv_val) {
           if (sscanf(getenv_val, "%lg", &aspect) < 1) {
                fprintf(stderr, "invalid aspect ratio value: %s\n", getenv_val);
                goto done;
@@ -127,7 +127,7 @@ int pixel_trace(char* filename) {
      }
 
      /* rectangular pixels */
-     if (NULL != (getenv_val = getenv("PIXELTRACE_HEIGHT"))) {
+     if (NULL != (getenv_val = getenv("PIXELTRACE_HEIGHT")) && *getenv_val) {
           if (sscanf(getenv_val, "%lg", &pixel_height) < 1) {
                fprintf(stderr, "invalid pixel height value: %s\n", getenv_val);
                goto done;
@@ -138,7 +138,7 @@ int pixel_trace(char* filename) {
                pixel_height = 1;
           }
      }
-     if (NULL != (getenv_val = getenv("PIXELTRACE_WIDTH"))) {
+     if (NULL != (getenv_val = getenv("PIXELTRACE_WIDTH")) && *getenv_val) {
           if (sscanf(getenv_val, "%lg", &pixel_width) < 1) {
                fprintf(stderr, "invalid pixel width value: %s\n", getenv_val);
                goto done;
