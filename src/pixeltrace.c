@@ -199,6 +199,7 @@ int pixel_trace(char* filename) {
      printf("%%%%LanguageLevel: 2\n");
      printf("%%%%BoundingBox: 0 0 %g %g\n", bbx_width, bbx_height);
      printf("%%%%HiResBoundingBox: 0 0 %.6f %.6f\n", bbx_width, bbx_height);
+     /* fprintf(stderr, "pixeltrace: bounding box %g wide %g high\n", bbx_width, bbx_height); */
      printf("%%%%Pages: 1\n");
      printf("%%%%EndComments\n");
      printf("%%%%Page: 1 1\n\n");
