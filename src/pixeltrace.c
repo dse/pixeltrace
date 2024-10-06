@@ -83,6 +83,10 @@ int pixel_trace(char* filename) {
      *bmp_colors_used       = le32toh(*bmp_colors_used);
      *bmp_important_colors  = le32toh(*bmp_important_colors);
 
+     if (getenv("PIXELTRACE_DEBUG") != NULL) {
+          fprintf(stderr, "pixeltrace: %d x %d\n", *bmp_width, *bmp_height);
+     }
+
      if (bmp_header[0] != 'B' || bmp_header[1] != 'M') {
           fprintf(stderr, "%s: invalid signature\n", filename);
           goto done;
@@ -194,15 +198,28 @@ int pixel_trace(char* filename) {
      double bbx_width = aspect * *bmp_width;
      double bbx_height = 1.0 * *bmp_height;
 
+     int output_stderr = getenv("PIXELTRACE_STDERR") != NULL;
+
      printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
      printf("%%%%Creator: pixeltrace\n");
      printf("%%%%LanguageLevel: 2\n");
      printf("%%%%BoundingBox: 0 0 %g %g\n", bbx_width, bbx_height);
      printf("%%%%HiResBoundingBox: 0 0 %.6f %.6f\n", bbx_width, bbx_height);
-     /* fprintf(stderr, "pixeltrace: bounding box %g wide %g high\n", bbx_width, bbx_height); */
      printf("%%%%Pages: 1\n");
      printf("%%%%EndComments\n");
      printf("%%%%Page: 1 1\n\n");
+
+     if (output_stderr) {
+          fprintf(stderr, "%%!PS-Adobe-3.0 EPSF-3.0\n");
+          fprintf(stderr, "%%%%Creator: pixeltrace\n");
+          fprintf(stderr, "%%%%LanguageLevel: 2\n");
+          fprintf(stderr, "%%%%BoundingBox: 0 0 %g %g\n", bbx_width, bbx_height);
+          fprintf(stderr, "%%%%HiResBoundingBox: 0 0 %.6f %.6f\n", bbx_width, bbx_height);
+          fprintf(stderr, "%%%%Pages: 1\n");
+          fprintf(stderr, "%%%%EndComments\n");
+          fprintf(stderr, "%%%%Page: 1 1\n\n");
+     }
+
      for (int y = 0; y < *bmp_height; y += 1) {
           bytes = fread(pixel_data, 1, fread_bytes_per_row, fh);
           if (bytes < fread_bytes_per_row) {
@@ -286,6 +303,13 @@ int pixel_trace(char* filename) {
                     x1 = x2;
                }
           }
+          if (getenv("PIXELTRACE_DEBUG") != NULL) {
+               for (int x = 0; x < *bmp_width; x += 1) {
+                    int bit = 1 & (pixel_data[x / 8] >> (7 - x % 8));
+                    fputc(bit ? ' ' : '#', stderr);
+               }
+               fputc('\n', stderr);
+          }
      }
      printf("%%%%EOF\n");
      pixel_trace_success = 1;
@@ -302,15 +326,36 @@ done:
 }
 
 void draw_path_done() {
+     int output_stderr = getenv("PIXELTRACE_STDERR") != NULL;
+
      printf("0 setlinewidth 0 setgray closepath\n");
      printf("fill\n\n");
+     if (output_stderr) {
+          fprintf(stderr, "0 setlinewidth 0 setgray closepath\n");
+          fprintf(stderr, "fill\n\n");
+     }
 }
 void draw_lineto(double x, double y) {
+     int output_stderr = getenv("PIXELTRACE_STDERR") != NULL;
+
      printf("%lg %lg lineto\n", x, y);
+     if (output_stderr) {
+          fprintf(stderr, "%lg %lg lineto\n", x, y);
+     }
 }
 void draw_moveto(double x, double y) {
+     int output_stderr = getenv("PIXELTRACE_STDERR") != NULL;
+
      printf("%lg %lg moveto\n", x, y);
+     if (output_stderr) {
+          fprintf(stderr, "%lg %lg moveto\n", x, y);
+     }
 }
 void draw_arc(double cx, double cy, double radius) {
+     int output_stderr = getenv("PIXELTRACE_STDERR") != NULL;
+
      printf("%lg %lg %lg 0 360 arc\n", cx, cy, radius);
+     if (output_stderr) {
+          fprintf(stderr, "%lg %lg %lg 0 360 arc\n", cx, cy, radius);
+     }
 }
